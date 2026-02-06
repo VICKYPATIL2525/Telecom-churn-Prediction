@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telecom Churn Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 95vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .header-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Main Content Area */
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 0 30px;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            background: #f8f9fa;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        /* Form Sections */
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Quick Select */
+        .quick-select {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .quick-select-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Button */
+        .btn-predict {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-predict:active {
+            transform: translateY(0);
+        }
+
+        /* Model Info Card */
+        .model-card {
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .model-card h4 {
+            color: #5e35b1;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .metric-box {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Result Display */
+        .result-display {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .result-display.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .result-card.churn {
+            border: 3px solid #f44336;
+            background: linear-gradient(135deg, #ffebee 0%, #fff 100%);
+        }
+
+        .result-card.no-churn {
+            border: 3px solid #4caf50;
+            background: linear-gradient(135deg, #e8f5e9 0%, #fff 100%);
+        }
+
+        .result-icon {
+            font-size: 4em;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .result-card.churn .result-title {
+            color: #f44336;
+        }
+
+        .result-card.no-churn .result-title {
+            color: #4caf50;
+        }
+
+        .probability-display {
+            font-size: 4em;
+            font-weight: 800;
+            margin: 20px 0;
+        }
+
+        .result-card.churn .probability-display {
+            color: #f44336;
+        }
+
+        .result-card.no-churn .probability-display {
+            color: #4caf50;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1em;
+            margin-top: 15px;
+        }
+
+        .risk-very-high { background: #f44336; color: white; }
+        .risk-high { background: #ff9800; color: white; }
+        .risk-moderate { background: #ffc107; color: #333; }
+        .risk-low { background: #8bc34a; color: white; }
+        .risk-very-low { background: #4caf50; color: white; }
+
+        .details-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .details-card h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .prob-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .prob-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .prob-item-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .prob-item-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .recommendations {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .recommendations h4 {
+            color: #856404;
+            margin-bottom: 12px;
+        }
+
+        .recommendations ul {
+            margin-left: 20px;
+            color: #856404;
+            line-height: 1.8;
+        }
+
+        /* Info Message */
+        .info-message {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-message p {
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                max-height: 50vh;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Telecom Churn Prediction System</h1>
+            <div class="header-badge">ML-Powered Analytics</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- Sidebar: Input Form -->
+            <div class="sidebar">
+                <!-- Model Selection -->
+                <div class="form-section">
+                    <h3>🎯 Select Model</h3>
+                    <div class="form-group">
+                        <label>Prediction Model</label>
+                        <select id="model" onchange="updateModelInfo()">
+                            {% for model in models %}
+                            <option value="{{ model }}" {% if loop.first %}selected{% endif %}>{{ model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Model Performance -->
+                <div class="model-card" id="model-info"></div>
+
+                <!-- Quick Test Cases -->
+                <div class="quick-select">
+                    <label class="quick-select-label">Quick Fill (Test Cases)</label>
+                    <select id="test-case" onchange="loadTestCase()">
+                        <option value="">-- Manual Entry --</option>
+                        {% for case in test_cases %}
+                        <option value="{{ case }}">{{ case }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Customer Input Form -->
+                <form id="prediction-form">
+                    <div class="form-section">
+                        <h3>👤 Account Info</h3>
+                        <div class="form-group">
+                            <label>Account Length (months)</label>
+                            <input type="number" id="account_length" name="account_length" required min="1" max="300">
+                        </div>
+                        <div class="form-group">
+                            <label>Customer Service Calls</label>
+                            <input type="number" id="customer_service_calls" name="customer_service_calls" required min="0" max="10">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📞 Plan Features</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Voice Mail Plan</label>
+                                <select id="voice_mail_plan" name="voice_mail_plan" required>
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Voice Mail Messages</label>
+                                <input type="number" id="voice_mail_messages" name="voice_mail_messages" required min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>International Plan</label>
+                            <select id="international_plan" name="international_plan" required>
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📊 Usage & Charges</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Day Calls</label>
+                                <input type="number" id="day_calls" name="day_calls" required min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Day Charge ($)</label>
+                                <input type="number" id="day_charge" name="day_charge" step="0.01" required min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Evening Calls</label>
+                                <input type="number" id="evening_calls" name="evening_calls" required min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Evening Charge ($)</label>
+                                <input type="number" id="evening_charge" name="evening_charge" step="0.01" required min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Night Calls</label>
+                                <input type="number" id="night_calls" name="night_calls" required min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Night Charge ($)</label>
+                                <input type="number" id="night_charge" name="night_charge" step="0.01" required min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>International Calls</label>
+                                <input type="number" id="international_calls" name="international_calls" required min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>International Charge ($)</label>
+                                <input type="number" id="international_charge" name="international_charge" step="0.01" required min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Total Charge ($)</label>
+                            <input type="number" id="total_charge" name="total_charge" step="0.01" required min="0">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-predict">Predict Churn Risk</button>
+                </form>
+            </div>
+
+            <!-- Right Panel: Tabs & Results -->
+            <div class="right-panel">
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('results')">Results</div>
+                    <div class="tab" onclick="switchTab('guide')">Guide</div>
+                </div>
+
+                <!-- Results Tab -->
+                <div id="tab-results" class="tab-content active">
+                    <div class="info-message">
+                        <p><strong>Getting Started:</strong> Select a test case from the sidebar or manually enter customer data, then click "Predict Churn Risk" to see the results.</p>
+                    </div>
+                    <div id="result-container" class="result-display">
+                        <!-- Results will appear here -->
+                    </div>
+                </div>
+
+                <!-- Guide Tab -->
+                <div id="tab-guide" class="tab-content">
+                    <div class="form-section">
+                        <h3>How to Use This System</h3>
+                        <ol style="line-height: 2; margin-left: 20px; color: #555;">
+                            <li><strong>Select a Model:</strong> Choose from XGBoost, LightGBM, Random Forest, Logistic Regression, or SVM</li>
+                            <li><strong>Quick Fill (Optional):</strong> Use predefined test cases to auto-fill customer data</li>
+                            <li><strong>Enter Data:</strong> Fill in customer account information, plan features, and usage details</li>
+                            <li><strong>Predict:</strong> Click the "Predict Churn Risk" button to analyze</li>
+                            <li><strong>Review Results:</strong> Check the churn probability and recommended actions</li>
+                        </ol>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Understanding Risk Levels</h3>
+                        <div style="margin-top: 15px;">
+                            <div style="margin-bottom: 12px;">
+                                <span class="risk-badge risk-very-high">Very High Risk</span>
+                                <span style="margin-left: 10px; color: #666;">≥70% churn probability</span>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span class="risk-badge risk-high">High Risk</span>
+                                <span style="margin-left: 10px; color: #666;">50-70% churn probability</span>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span class="risk-badge risk-moderate">Moderate Risk</span>
+                                <span style="margin-left: 10px; color: #666;">30-50% churn probability</span>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span class="risk-badge risk-low">Low Risk</span>
+                                <span style="margin-left: 10px; color: #666;">15-30% churn probability</span>
+                            </div>
+                            <div>
+                                <span class="risk-badge risk-very-low">Very Low Risk</span>
+                                <span style="margin-left: 10px; color: #666;"><15% churn probability</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Key Factors</h3>
+                        <ul style="line-height: 2; margin-left: 20px; color: #555;">
+                            <li><strong>Customer Service Calls:</strong> Multiple calls indicate dissatisfaction</li>
+                            <li><strong>International Plan:</strong> Customers with international plans have higher churn</li>
+                            <li><strong>Total Charges:</strong> High bills can lead to customer churn</li>
+                            <li><strong>Account Length:</strong> Newer customers are more likely to churn</li>
+                            <li><strong>Voice Mail Plan:</strong> Engaged customers are less likely to churn</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modelMetrics = {{ metrics | tojson }};
+
+        // Clear results
+        function clearResults() {
+            document.getElementById('result-container').classList.remove('show');
+            document.getElementById('result-container').innerHTML = '';
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // Update model info
+        function updateModelInfo() {
+            const modelSelect = document.getElementById('model');
+            const metrics = modelMetrics[modelSelect.value];
+
+            document.getElementById('model-info').innerHTML = `
+                <h4>${modelSelect.value}</h4>
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="metric-label">Accuracy</div>
+                        <div class="metric-value">${metrics.accuracy.toFixed(1)}%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Recall</div>
+                        <div class="metric-value">${metrics.recall.toFixed(1)}%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Precision</div>
+                        <div class="metric-value">${metrics.precision.toFixed(1)}%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">F1-Score</div>
+                        <div class="metric-value">${metrics.f1.toFixed(1)}%</div>
+                    </div>
+                </div>
+            `;
+            clearResults();
+        }
+
+        // Load test case
+        async function loadTestCase() {
+            const caseName = document.getElementById('test-case').value;
+            if (!caseName) return;
+
+            clearResults();
+
+            try {
+                const response = await fetch(`/get_test_case/${encodeURIComponent(caseName)}`);
+                const data = await response.json();
+
+                for (const [key, value] of Object.entries(data)) {
+                    const field = document.getElementById(key);
+                    if (field) field.value = value;
+                }
+            } catch (error) {
+                console.error('Error loading test case:', error);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            formData.append('model', document.getElementById('model').value);
+
+            try {
+                const response = await fetch('/predict', { method: 'POST', body: formData });
+                const result = await response.json();
+                displayResult(result);
+
+                // Switch to results tab
+                document.querySelectorAll('.tab')[0].click();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Prediction failed. Please check your inputs.');
+            }
+        });
+
+        // Display results
+        function displayResult(result) {
+            const container = document.getElementById('result-container');
+            const isChurn = result.prediction === 'Churn';
+            const riskClass = getRiskClass(result.risk_level);
+
+            container.innerHTML = `
+                <div class="result-card ${isChurn ? 'churn' : 'no-churn'}">
+                    <div class="result-icon">${isChurn ? '⚠️' : '✅'}</div>
+                    <div class="result-title">${isChurn ? 'CHURN PREDICTED' : 'NO CHURN PREDICTED'}</div>
+                    <div class="probability-display">${result.churn_probability.toFixed(2)}%</div>
+                    <p style="color: #666; font-size: 1.1em;">Churn Probability</p>
+                    <div class="risk-badge ${riskClass}">${result.risk_level}</div>
+
+                    <div class="details-card">
+                        <h4>Probability Breakdown</h4>
+                        <div class="prob-breakdown">
+                            <div class="prob-item">
+                                <div class="prob-item-label">Will Stay</div>
+                                <div class="prob-item-value" style="color: #4caf50;">${result.no_churn_probability.toFixed(1)}%</div>
+                            </div>
+                            <div class="prob-item">
+                                <div class="prob-item-label">Will Churn</div>
+                                <div class="prob-item-value" style="color: #f44336;">${result.churn_probability.toFixed(1)}%</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px; color: #666; font-size: 0.9em;">Model Used: <strong>${result.model}</strong></p>
+                    </div>
+
+                    ${isChurn ? `
+                    <div class="recommendations">
+                        <h4>Recommended Actions</h4>
+                        <ul>
+                            <li>Contact customer within 24 hours</li>
+                            <li>Offer retention discount or plan optimization</li>
+                            <li>Assess service quality issues</li>
+                            <li>Assign to retention specialist team</li>
+                        </ul>
+                    </div>
+                    ` : `
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4caf50;">
+                        <h4 style="color: #2e7d32; margin-bottom: 10px;">Retention Tips</h4>
+                        <ul style="margin-left: 20px; color: #2e7d32; line-height: 1.8;">
+                            <li>Continue monitoring customer satisfaction</li>
+                            <li>Maintain service quality standards</li>
+                            <li>Consider loyalty rewards program</li>
+                        </ul>
+                    </div>
+                    `}
+                </div>
+            `;
+
+            container.classList.add('show');
+        }
+
+        // Get risk class
+        function getRiskClass(riskLevel) {
+            const riskMap = {
+                'Very High Risk': 'risk-very-high',
+                'High Risk': 'risk-high',
+                'Moderate Risk': 'risk-moderate',
+                'Low Risk': 'risk-low',
+                'Very Low Risk': 'risk-very-low'
+            };
+            return riskMap[riskLevel] || 'risk-moderate';
+        }
+
+        // Initialize
+        updateModelInfo();
+
+        // Clear results on input change
+        document.querySelectorAll('#prediction-form input, #prediction-form select').forEach(input => {
+            input.addEventListener('change', clearResults);
+        });
+    </script>
+</body>
+</html>
