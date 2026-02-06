@@ -1,0 +1,23 @@
+# Essential Libraries for Telecom Churn Prediction
+# Python 3.13.2 compatible versions with pre-built wheels
+
+# Core numerical and data libraries (Python 3.13 compatible)
+numpy==2.1.3
+pandas==2.2.3
+
+# Visualization
+matplotlib==3.9.3
+seaborn==0.13.2
+
+# Machine Learning and dependencies
+scipy==1.14.1
+joblib==1.4.2
+threadpoolctl==3.5.0
+scikit-learn==1.6.0
+
+# Jupyter support
+notebook==7.2.2
+ipykernel==6.29.5
+jupyter-client==8.6.3
+jupyter-core==5.7.2
+ipython==8.29.0
